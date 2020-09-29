@@ -111,7 +111,7 @@ void TestRemoveRedundancy() {
 
 double randomDouble01() {
     double random_value = rand();
-    double max_value = 32768;
+    double max_value = RAND_MAX;
     return random_value / max_value;
 }
 
@@ -149,7 +149,7 @@ void TestDetermination() {
     const int iterations_number = 200;
     const int min_size = 3;
     const int max_size = 10;
-    const string alphabet = "abc";
+    const string alphabet = "ab";
     const double edge_probability = 0.1;
     const double terminal_probability = 0.3;
 
@@ -164,7 +164,7 @@ void TestFullDetermination() {
     const int iterations_number = 200;
     const int min_size = 3;
     const int max_size = 10;
-    const string alphabet = "abc";
+    const string alphabet = "ab";
     const double edge_probability = 0.1;
     const double terminal_probability = 0.3;
 

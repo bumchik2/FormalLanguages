@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(formal_languages)
+
+set(CMAKE_CXX_FLAGS "-Wall -Werror")
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/)
+
+add_executable(main
+  ${PROJECT_SOURCE_DIR}/src/main.cpp
+)
+
+target_include_directories(main PRIVATE ${PROJECT_SOURCE_DIR}/include)
