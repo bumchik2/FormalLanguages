@@ -8,18 +8,18 @@ using std::cout;
 using std::endl;
 
 int main () {
-    RunTests();
-
-    StateMachine sm;
-    cin >> sm;
+    StateMachine state_machine;
+    cin >> state_machine;
 
     // Task1:
-    //StateMachine minimal_sm = getMinimalFullDeterminedStateMachine(sm, true);
-    //cout << minimal_sm << endl;
+    //StateMachine minimal_state_machine = 
+    //        getMinimalFullDeterminedStateMachine(state_machine, true);
+    //cout << minimal_state_machine << endl;
 
     // Task2:
-    StateMachine minimal_addition_sm = getMinimalFullDeterminedAdditionStateMachine(sm, true);
-    cout << minimal_addition_sm << endl;
+    StateMachine minimal_addition_state_machine = 
+            getMinimalFullDeterminedAdditionStateMachine(state_machine, true);
+    cout << minimal_addition_state_machine << endl;
     return 0;
 }
 

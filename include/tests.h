@@ -3,6 +3,15 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <iostream>
+#include <stdexcept>
+#include <sstream>
+
+using std::ostringstream;
+using std::cerr;
+using std::endl;
+using std::exception;
+using std::runtime_error;
 
 #include "state_machine.h"
 
@@ -95,18 +104,18 @@ private:
     tr.RunTest(func, #func)
 
 void TestRemoveRedundancy() {
-    vector<pair<int, Edge>> edges = {
-        {0, {1, 'a'}},
-        {1, {1, 'b'}},
-        {2, {0, 'a'}},
+    vector<EdgeExtended> edges = {
+        {0, 1, 'a'},
+        {1, 1, 'b'},
+        {2, 0, 'a'},
     };
-    vector<int> terminal_vertex = {1};
+    vector<int> terminal_states = {1};
 
-    StateMachine sm(4, "ab", edges, terminal_vertex, 0);
-    sm = removeRedundantVertex(sm);
+    StateMachine state_machine(4, "ab", edges, terminal_states, 0);
+    state_machine = removeRedundantStates(state_machine);
 
-    AssertEqual(sm.n, 2, "not all the redundant vertex were removed");
-    AssertEqual(static_cast<int>(sm.terminal_vertex.size()), 1, "exactly one terminal vertex should remain");
+    AssertEqual(state_machine.states_number, 2, "not all the redundant vertex were removed");
+    AssertEqual(static_cast<int>(state_machine.terminal_states.size()), 1, "exactly one terminal vertex should remain");
 }
 
 double randomDouble01() {
@@ -121,28 +130,28 @@ int randomIntBetween(int l, int r) {
 
 StateMachine getRandomStateMachine(int min_size, int max_size, const string& alphabet,
         double edge_probability, double terminal_probability) {
-    int n = randomIntBetween(min_size, max_size);
+    int states_number = randomIntBetween(min_size, max_size);
 
-    StateMachine sm;
-    sm.initialize(n, alphabet, 0);
+    StateMachine state_machine;
+    state_machine.initialize(states_number, alphabet, 0);
 
-    for (int from = 0; from < n; ++from) {
-        for (int to = 0; to < n; ++to) {
-            for (unsigned char_number = 0; char_number < alphabet.size(); ++char_number) {
+    for (int from = 0; from < states_number; ++from) {
+        for (int to = 0; to < states_number; ++to) {
+            for (unsigned symbol_number = 0; symbol_number < alphabet.size(); ++symbol_number) {
                 if (randomDouble01() < edge_probability) {
-                    sm.addEdge(from, to, alphabet[char_number]);
+                    state_machine.addEdge(from, to, alphabet[symbol_number]);
                 }
             }
         }
     }
 
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < states_number; ++i) {
         if (randomDouble01() < terminal_probability) {
-            sm.addTerminalVertex(i);
+            state_machine.addTerminalState(i);
         }
     }
 
-    return sm;
+    return state_machine;
 }
 
 void TestDetermination() {
@@ -154,9 +163,10 @@ void TestDetermination() {
     const double terminal_probability = 0.3;
 
     for (int i = 0; i < iterations_number; ++i) {
-        StateMachine sm = getRandomStateMachine(min_size, max_size, alphabet, edge_probability, terminal_probability);
-        sm = determined(sm);
-        Assert(sm.is_determined(), "state machine is not determined after determination");
+        StateMachine state_machine = getRandomStateMachine(min_size, max_size, alphabet, 
+        		edge_probability, terminal_probability);
+        state_machine = determined(state_machine);
+        Assert(state_machine.is_determined(), "state machine is not determined after determination");
     }
 }
 
@@ -169,45 +179,46 @@ void TestFullDetermination() {
     const double terminal_probability = 0.3;
 
     for (int i = 0; i < iterations_number; ++i) {
-        StateMachine sm = getRandomStateMachine(min_size, max_size, alphabet, edge_probability, terminal_probability);
-        sm = determined(sm);
-        Assert(sm.is_determined(), "state machine is not determined after determination");
-        sm = determinedFull(sm);
-        Assert(sm.is_determined(), "state machine is not determined after making full");
-        Assert(sm.is_full(), "state machine is not full after making full");
+        StateMachine state_machine = getRandomStateMachine(min_size, max_size, alphabet,
+        		edge_probability, terminal_probability);
+        state_machine = determined(state_machine);
+        Assert(state_machine.is_determined(), "state machine is not determined after determination");
+        state_machine = determinedFull(state_machine);
+        Assert(state_machine.is_determined(), "state machine is not determined after making full");
+        Assert(state_machine.is_full(), "state machine is not full after making full");
     }
 }
 
 void TestMinimalFullDetermination() {
-    vector<pair<int, Edge>> edges = {
-        {0, {1, 'a'}},
-        {0, {3, 'b'}},
-        {1, {2, 'a'}},
-        {1, {4, 'b'}},
-        {2, {0, 'a'}},
-        {2, {5, 'b'}},
-        {3, {4, 'a'}},
-        {3, {6, 'b'}},
-        {4, {5, 'a'}},
-        {4, {7, 'b'}},
-        {5, {3, 'a'}},
-        {5, {8, 'b'}},
-        {6, {7, 'a'}},
-        {6, {0, 'b'}},
-        {7, {8, 'a'}},
-        {7, {1, 'b'}},
-        {8, {6, 'a'}},
-        {8, {2, 'b'}},
+    vector<EdgeExtended> edges = {
+        {0, 1, 'a'},
+        {0, 3, 'b'},
+        {1, 2, 'a'},
+        {1, 4, 'b'},
+        {2, 0, 'a'},
+        {2, 5, 'b'},
+        {3, 4, 'a'},
+        {3, 6, 'b'},
+        {4, 5, 'a'},
+        {4, 7, 'b'},
+        {5, 3, 'a'},
+        {5, 8, 'b'},
+        {6, 7, 'a'},
+        {6, 0, 'b'},
+        {7, 8, 'a'},
+        {7, 1, 'b'},
+        {8, 6, 'a'},
+        {8, 2, 'b'},
     };
-    vector<int> terminal_vertex = {0, 4, 8};
+    vector<int> terminal_states = {0, 4, 8};
 
-    StateMachine sm(9, "ab", edges, terminal_vertex, 0);
-    sm = getMinimalFullDeterminedStateMachine(sm);
+    StateMachine state_machine(9, "ab", edges, terminal_states, 0);
+    state_machine = getMinimalFullDeterminedStateMachine(state_machine);
 
-    AssertEqual(sm.n, 3, "vertex number is not minimal");
-    AssertEqual(static_cast<int>(sm.terminal_vertex.size()), 1, "terminal vertex number has to be different");
-    Assert(sm.is_determined(), "state machine is not determined");
-    Assert(sm.is_full(), "state machine is not full");
+    AssertEqual(state_machine.states_number, 3, "states number is not minimal");
+    AssertEqual(static_cast<int>(state_machine.terminal_states.size()), 1, "terminal state number has to be different");
+    Assert(state_machine.is_determined(), "state machine is not determined");
+    Assert(state_machine.is_full(), "state machine is not full");
 }
 
 void RunTests() {
