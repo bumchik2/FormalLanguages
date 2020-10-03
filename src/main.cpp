@@ -1,32 +1,37 @@
-#include <iostream>
-
-#include "tests.h"
 #include "state_machine.h"
+
+#include <iostream>
 
 using std::cin;
 using std::cout;
 using std::endl;
 
 int main () {
+    // checking if to state machines are equal
+    //StateMachine state_machine1;
+    // >> state_machine1;
+    //StateMachine state_machine2;
+    //cin >> state_machine2;
+    //cout << areEqual(state_machine1, state_machine2) << endl;
+
     StateMachine state_machine;
     cin >> state_machine;
 
     // Task1:
-    //StateMachine minimal_state_machine = 
-    //        getMinimalFullDeterminedStateMachine(state_machine, true);
-    //cout << minimal_state_machine << endl;
+    StateMachine minimal_state_machine =
+            getMinimalFullDeterminedStateMachine(state_machine, true);
+    cout << minimal_state_machine << endl;
 
     // Task2:
-    StateMachine minimal_addition_state_machine = 
-            getMinimalFullDeterminedAdditionStateMachine(state_machine, true);
-    cout << minimal_addition_state_machine << endl;
+    //StateMachine minimal_addition_state_machine =
+    //        getMinimalFullDeterminedAdditionStateMachine(state_machine, true);
+    //cout << minimal_addition_state_machine << endl;
     return 0;
 }
 
 /*
 
 Test (|w|a - |w|b % 3 == 0)
-
 9 18
 ab
 0 1 a
@@ -51,7 +56,6 @@ ab
 0 4 8
 
 Task 1
-
 7 13
 ab
 0 0 a
@@ -71,7 +75,6 @@ ab
 6
 
 Task 2
-
 6 10
 ab
 0 1 a
@@ -87,4 +90,4 @@ ab
 2
 0 5
 
- */
+*/

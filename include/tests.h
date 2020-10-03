@@ -1,4 +1,4 @@
-#pragma once
+#include "state_machine.h"
 
 #include <chrono>
 #include <iostream>
@@ -12,8 +12,6 @@ using std::cerr;
 using std::endl;
 using std::exception;
 using std::runtime_error;
-
-#include "state_machine.h"
 
 using namespace std::chrono;
 
@@ -114,8 +112,10 @@ void TestRemoveRedundancy() {
     StateMachine state_machine(4, "ab", edges, terminal_states, 0);
     state_machine = removeRedundantStates(state_machine);
 
-    AssertEqual(state_machine.states_number, 2, "not all the redundant vertex were removed");
-    AssertEqual(static_cast<int>(state_machine.terminal_states.size()), 1, "exactly one terminal vertex should remain");
+    AssertEqual(state_machine.states_number, 2,
+            "not all the redundant state were removed");
+    AssertEqual(static_cast<int>(state_machine.terminal_states.size()), 1,
+            "exactly one terminal state should remain");
 }
 
 double randomDouble01() {
@@ -163,7 +163,7 @@ void TestDetermination() {
     const double terminal_probability = 0.3;
 
     for (int i = 0; i < iterations_number; ++i) {
-        StateMachine state_machine = getRandomStateMachine(min_size, max_size, alphabet, 
+        StateMachine state_machine = getRandomStateMachine(min_size, max_size, alphabet,
         		edge_probability, terminal_probability);
         state_machine = determined(state_machine);
         Assert(state_machine.is_determined(), "state machine is not determined after determination");
@@ -221,10 +221,60 @@ void TestMinimalFullDetermination() {
     Assert(state_machine.is_full(), "state machine is not full");
 }
 
+void TestEqual() {
+    vector<EdgeExtended> edges_1 = {
+        {0, 1, 'a'},
+        {0, 1, 'b'},
+        {1, 1, 'a'},
+        {1, 1, 'b'},
+        {1, 2, 'a'},
+        {3, 2, 'b'},
+        {4, 3, 'a'}
+    };
+    vector<int> terminal_states1 = {2, 4};
+    StateMachine state_machine1(5, "ab", edges_1, terminal_states1, 0);
+
+    vector<EdgeExtended> edges_2 = {
+        {0, 1, 'a'},
+        {0, 2, 'b'},
+        {1, 1, 'a'},
+        {1, 1, 'b'},
+        {2, 2, 'a'},
+        {2, 2, 'b'},
+        {1, 3, 'a'},
+        {2, 3, 'a'},
+    };
+    vector<int> terminal_states2 = {3};
+    StateMachine state_machine2(4, "ab", edges_2, terminal_states2, 0);
+
+    Assert(areEqual(state_machine1, state_machine2), "these state machines are equal");
+
+    terminal_states2 = {2, 3};
+    state_machine1 = StateMachine(5, "ab", edges_1, terminal_states1, 0);
+    state_machine2 = StateMachine(4, "ab", edges_2, terminal_states2, 0);
+    Assert(!areEqual(state_machine1, state_machine2),
+            "after modifying terminal_states2 these state machines are not equal");
+
+    const int iterations_number = 20;
+    const int min_size = 3;
+    const int max_size = 8;
+    const string alphabet = "ab";
+    const double edge_probability = 0.1;
+    const double terminal_probability = 0.3;
+    for (int i = 0; i < iterations_number; ++i) {
+        StateMachine state_machine = getRandomStateMachine(min_size, max_size, alphabet,
+                edge_probability, terminal_probability);
+        StateMachine min_full_determined_state_machine = getMinimalFullDeterminedStateMachine(state_machine);
+        Assert(areEqual(state_machine, min_full_determined_state_machine),
+                "after full-determination we have to get an equal state machine");
+    }
+}
+
 void RunTests() {
     TestRunner tr;
     tr.RunTest(TestRemoveRedundancy, "TestRemoveRedundancy");
     tr.RunTest(TestMinimalFullDetermination, "TestMinimalFullDetermination");
     tr.RunTest(TestDetermination, "TestDetermination");
     tr.RunTest(TestFullDetermination, "TestFullDetermination");
+    tr.RunTest(TestEqual, "TestEqual");
 }

@@ -3,11 +3,13 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <utility>
 
 using std::string;
 using std::vector;
 using std::ostream;
 using std::istream;
+using std::pair;
 
 struct Edge { // we will only work with 1-letter state machines
     int to = -1;
@@ -32,12 +34,12 @@ struct StateMachine {
 
     StateMachine() = default;
     StateMachine(int new_n, string new_alphabet, const vector<EdgeExtended>& new_edges,
-            const vector<int>& new_terminal_vertex, int new_starting_vertex = 0);
+            const vector<int>& new_terminal_state, int new_starting_state = 0);
 
-    void initialize(int new_n, string new_alphabet, int new_starting_vertex = 0);
+    void initialize(int new_n, string new_alphabet, int new_starting_state = 0);
     void addEdge(int from, int to, char symbol);
     void addEdge(const EdgeExtended&);
-    void addTerminalState(int new_terminal_vertex);
+    void addTerminalState(int new_terminal_state);
     void invert(bool print_log = false);
 
     int go(int from, char c) const;
@@ -57,5 +59,9 @@ istream& operator >> (istream& is, StateMachine&);
 
 StateMachine getMinimalFullDeterminedStateMachine(const StateMachine&,
         bool print_log = false);
-StateMachine getMinimalFullDeterminedAdditionStateMachine(const StateMachine&, 
+StateMachine getMinimalFullDeterminedAdditionStateMachine(const StateMachine&,
         bool print_log = false);
+
+StateMachine getIntersectionStateMachine(const StateMachine& state_machine1, const StateMachine& state_machine2);
+pair<bool, string> getCommonString(const StateMachine& state_machine1, const StateMachine& state_machine2);
+bool areEqual(const StateMachine& state_machine1, const StateMachine& state_machine2, bool print_log = false);

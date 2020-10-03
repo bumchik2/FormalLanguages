@@ -1,3 +1,5 @@
+#include "state_machine.h"
+
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -27,9 +29,6 @@ using std::cin;
 using std::cout;
 using std::endl;
 
-#include "state_machine.h"
-
-
 bool operator == (const Edge& e1, const Edge& e2) {
     return e1.to == e2.to && e1.symbol == e2.symbol;
 }
@@ -41,8 +40,8 @@ ostream& operator << (ostream& os, Edge edge) {
 
 
 StateMachine::StateMachine(int new_n, string new_alphabet, const vector<EdgeExtended>& new_edges,
-            const vector<int>& new_terminal_states, int new_starting_vertex) {
-    initialize(new_n, new_alphabet, new_starting_vertex);
+            const vector<int>& new_terminal_states, int new_starting_state) {
+    initialize(new_n, new_alphabet, new_starting_state);
     for (unsigned int i = 0; i < new_edges.size(); ++i) {
         addEdge(new_edges[i]);
     }
@@ -51,7 +50,7 @@ StateMachine::StateMachine(int new_n, string new_alphabet, const vector<EdgeExte
     }
 }
 
-void StateMachine::initialize(int new_states_number, string new_alphabet, 
+void StateMachine::initialize(int new_states_number, string new_alphabet,
             int new_starting_state) {
     states_number = new_states_number;
     alphabet = new_alphabet;
@@ -62,7 +61,7 @@ void StateMachine::initialize(int new_states_number, string new_alphabet,
 
 void StateMachine::addEdge(int from, int to, char symbol) {
     if (from < 0 || from >= states_number || to < 0 || to >= states_number) {
-        throw runtime_error("incorrect vertex number in addEdge");
+        throw runtime_error("incorrect state number in addEdge");
     }
 
     if (find(alphabet.begin(), alphabet.end(), symbol) == alphabet.end()) {
@@ -82,7 +81,7 @@ void StateMachine::addEdge(const EdgeExtended& edge_expanded) {
 
 void StateMachine::addTerminalState(int new_terminal_state) {
     if (new_terminal_state < 0 || new_terminal_state >= states_number) {
-        throw runtime_error("incorrect vertex number in addTerminalState");
+        throw runtime_error("incorrect state number in addTerminalState");
     }
 
     if (find(terminal_states.begin(), terminal_states.end(), new_terminal_state)
@@ -149,13 +148,13 @@ bool StateMachine::is_full() const {
 }
 
 ostream& operator << (ostream& os, const StateMachine& state_machine) {
-    os << "State number: " << state_machine.states_number << 
+    os << "State number: " << state_machine.states_number <<
             "; Starting state: " << state_machine.starting_state << '\n';
     os << "Alphabet: " << state_machine.alphabet << '\n';
     os << "Edges:\n";
     for (int from = 0; from < state_machine.states_number; ++from) {
         os << from << ": ";
-        for (unsigned int edge_number = 0; edge_number < state_machine.edges[from].size(); 
+        for (unsigned int edge_number = 0; edge_number < state_machine.edges[from].size();
                     ++edge_number) {
             if (edge_number != 0) {
                 os << "; ";
@@ -172,10 +171,10 @@ ostream& operator << (ostream& os, const StateMachine& state_machine) {
     return os;
 }
 
-void dfs(const StateMachine& state_machine, vector<bool>& used, int current_vertex) {
-    used[current_vertex] = true;
-    for (unsigned edge_number = 0; edge_number < state_machine.edges[current_vertex].size(); ++edge_number) {
-        Edge current_edge = state_machine.edges[current_vertex][edge_number];
+void dfs(const StateMachine& state_machine, vector<bool>& used, int current_state) {
+    used[current_state] = true;
+    for (unsigned edge_number = 0; edge_number < state_machine.edges[current_state].size(); ++edge_number) {
+        Edge current_edge = state_machine.edges[current_state][edge_number];
         if (!used[current_edge.to]) {
             dfs(state_machine, used, current_edge.to);
         }
@@ -197,7 +196,7 @@ StateMachine removeRedundantStates(const StateMachine& state_machine) { // state
     }
 
     StateMachine answer;
-    answer.initialize(old_numbers_by_new_numbers.size(), state_machine.alphabet, 
+    answer.initialize(old_numbers_by_new_numbers.size(), state_machine.alphabet,
             new_numbers_by_old_numbers[state_machine.starting_state]);
 
     // adding all the edges
@@ -214,7 +213,7 @@ StateMachine removeRedundantStates(const StateMachine& state_machine) { // state
         }
     }
 
-    // marking terminal vertex
+    // marking terminal state
     for (unsigned i = 0; i < state_machine.terminal_states.size(); ++i) {
         int old_terminal_state = state_machine.terminal_states[i];
         if (used[old_terminal_state]) {
@@ -224,16 +223,16 @@ StateMachine removeRedundantStates(const StateMachine& state_machine) { // state
     return answer;
 }
 
-int getSet(int vertex) {
-    return 1 << vertex;
+int getSet(int state) {
+    return 1 << state;
 }
 
-bool setContainsState(int set_number, int vertex_number) {
-    return (set_number >> vertex_number) & 1;
+bool setContainsState(int set_number, int state_number) {
+    return (set_number >> state_number) & 1;
 }
 
-void printSet(int set_number, int max_vertex_number) {
-    for (int i = 0; i < max_vertex_number; ++i) {
+void printSet(int set_number, int max_state_number) {
+    for (int i = 0; i < max_state_number; ++i) {
         if (setContainsState(set_number, i)) {
             cout << i;
         }
@@ -243,13 +242,13 @@ void printSet(int set_number, int max_vertex_number) {
 int getToSet(const StateMachine& state_machine, int current_set, char symbol) {
     int to_set = 0;
 
-    for (int vertex_number = 0; vertex_number < state_machine.states_number; ++vertex_number) {
-        if (!setContainsState(current_set, vertex_number)) {
+    for (int state_number = 0; state_number < state_machine.states_number; ++state_number) {
+        if (!setContainsState(current_set, state_number)) {
             continue;
         }
-        for (unsigned edge_number = 0; edge_number < state_machine.edges[vertex_number].size();
+        for (unsigned edge_number = 0; edge_number < state_machine.edges[state_number].size();
                     ++edge_number) {
-            Edge current_edge = state_machine.edges[vertex_number][edge_number];
+            Edge current_edge = state_machine.edges[state_number][edge_number];
             if (current_edge.symbol != symbol) {
                 continue;
             }
@@ -266,7 +265,7 @@ StateMachine determined(const StateMachine& state_machine, bool print_log) { // 
     }
 
     StateMachine pre_answer;
-    pre_answer.initialize(1 << state_machine.states_number, state_machine.alphabet, 
+    pre_answer.initialize(1 << state_machine.states_number, state_machine.alphabet,
             getSet(state_machine.starting_state));
     string alphabet = pre_answer.alphabet = state_machine.alphabet;
 
@@ -325,7 +324,8 @@ StateMachine determinedFull(const StateMachine& state_machine, bool print_log) {
     }
 
     StateMachine pre_answer;
-    pre_answer.initialize(state_machine.states_number + 1, state_machine.alphabet, state_machine.starting_state);
+    pre_answer.initialize(
+            state_machine.states_number + 1, state_machine.alphabet, state_machine.starting_state);
 
     // copying edges
     for (int i = 0; i < state_machine.states_number; ++i) {
@@ -432,7 +432,7 @@ StateMachine determinedMinimal(const StateMachine& state_machine, bool print_log
     }
 
     StateMachine answer;
-    answer.initialize(different_sets_number, state_machine.alphabet, 
+    answer.initialize(different_sets_number, state_machine.alphabet,
             set_number[state_machine.starting_state]);
 
     // adding edges
@@ -444,7 +444,7 @@ StateMachine determinedMinimal(const StateMachine& state_machine, bool print_log
         }
     }
 
-    // adding terminal vertex
+    // adding terminal state
     for (unsigned i = 0; i < state_machine.terminal_states.size(); ++i) {
         int old_terminal_state = state_machine.terminal_states[i];
         answer.addTerminalState(set_number[old_terminal_state]);
@@ -462,7 +462,7 @@ istream& operator >> (istream& is, StateMachine& state_machine) {
     is >> alphabet;
     state_machine.initialize(states_number, alphabet);
 
-    // we could add reading start_state, but I personally don't need it when making tasks (start_vertex is always 0)
+    // we could add reading start_state, but I personally don't need it when making tasks (start_state is always 0)
 
     for (int i = 0; i < edges_number; ++i) { // read edges, all of them should be 1-letter
         int from, to;
@@ -484,7 +484,7 @@ istream& operator >> (istream& is, StateMachine& state_machine) {
     return is;
 }
 
-StateMachine getMinimalFullDeterminedStateMachine(const StateMachine& state_machine, 
+StateMachine getMinimalFullDeterminedStateMachine(const StateMachine& state_machine,
             bool print_log) {
     StateMachine determined_state_machine = determined(state_machine, print_log);
     StateMachine full_state_machine = determinedFull(determined_state_machine, print_log);
@@ -499,4 +499,131 @@ StateMachine getMinimalFullDeterminedAdditionStateMachine(const StateMachine& st
     full_state_machine.invert(print_log);
     StateMachine minimal_state_machine = determinedMinimal(full_state_machine, print_log);
     return minimal_state_machine;
+}
+
+int get_intersection_state_number(int state_number1, int state_number2, int multiplier) {
+    return state_number1 * multiplier + state_number2;
+}
+
+StateMachine getIntersectionStateMachine(
+            const StateMachine& state_machine1, const StateMachine& state_machine2) {
+    if (state_machine1.alphabet != state_machine2.alphabet) {
+        throw runtime_error("getIntersectionStateMachine only works with state machines of same alphabet");
+    }
+
+    // adding edges
+    vector<EdgeExtended> edges;
+    for (int from1 = 0; from1 < state_machine1.states_number; ++from1) {
+        for (int from2 = 0; from2 < state_machine2.states_number; ++from2) {
+            int new_from = get_intersection_state_number(from1, from2, state_machine2.states_number);
+            for (unsigned int edge_number1 = 0; edge_number1 < state_machine1.edges[from1].size(); ++edge_number1) {
+                for (unsigned int edge_number2 = 0; edge_number2 < state_machine2.edges[from2].size(); ++ edge_number2) {
+                    Edge edge1 = state_machine1.edges[from1][edge_number1];
+                    Edge edge2 = state_machine2.edges[from2][edge_number2];
+                    if (edge1.symbol != edge2.symbol) {
+                        continue;
+                    }
+                    int new_to = get_intersection_state_number(edge1.to, edge2.to, state_machine2.states_number);
+                    edges.push_back({new_from, new_to, edge1.symbol});
+                }
+            }
+        }
+    }
+
+    // adding terminal states
+    vector<int> terminal_states;
+    for (unsigned int terminal_state1 = 0; terminal_state1 < state_machine1.terminal_states.size(); ++terminal_state1) {
+        for (unsigned int terminal_state2 = 0; terminal_state2 < state_machine2.terminal_states.size(); ++ terminal_state2) {
+            terminal_states.push_back(get_intersection_state_number(
+                    state_machine1.terminal_states[terminal_state1],
+                    state_machine2.terminal_states[terminal_state2],
+                    state_machine2.states_number)
+            );
+        }
+    }
+
+    return removeRedundantStates(
+            StateMachine(
+                    state_machine1.states_number * state_machine2.states_number,
+                    state_machine1.alphabet,
+                    edges,
+                    terminal_states,
+                    get_intersection_state_number(state_machine1.starting_state,
+                            state_machine2.starting_state, state_machine2.states_number))
+    );
+}
+
+void saveTerminalWayDFS(const StateMachine& state_machine, vector<bool>& used, int current_state,
+        vector<char>& current_way, vector<char>& output, bool& answer_found) {
+    used[current_state] = true;
+
+    if (answer_found) {
+        return;
+    }
+    if (find(state_machine.terminal_states.begin(), state_machine.terminal_states.end(), current_state) !=
+            state_machine.terminal_states.end()) {
+        answer_found = true;
+        output = current_way;
+        return;
+    }
+
+    for (unsigned int edge_number = 0; edge_number < state_machine.edges[current_state].size(); ++ edge_number) {
+        if (answer_found) {
+            break;
+        }
+        Edge current_edge = state_machine.edges[current_state][edge_number];
+        if (!used[current_edge.to]) {
+            current_way.push_back(current_edge.symbol);
+            saveTerminalWayDFS(state_machine, used, current_edge.to, current_way, output, answer_found);
+        }
+    }
+
+    if (current_way.size() != 0) {
+        current_way.pop_back();
+    }
+}
+
+pair<bool, string> getCommonString(const StateMachine& state_machine1, const StateMachine& state_machine2) {
+    // first element shows if common string was found
+    StateMachine state_machine_intersection = getIntersectionStateMachine(state_machine1, state_machine2);
+
+    vector<bool> used(state_machine_intersection.states_number, false);
+    int starting_state = state_machine_intersection.starting_state;
+    vector<char> current_way;
+    vector<char> output;
+    bool answer_found = false;
+
+    saveTerminalWayDFS(state_machine_intersection, used, starting_state, current_way, output, answer_found);
+
+    string common_string;
+    for (unsigned int i = 0; i < output.size(); ++i) {
+        common_string += output[i];
+    }
+    return {answer_found, common_string};
+}
+
+bool areEqual(const StateMachine& state_machine1, const StateMachine& state_machine2, bool print_log) {
+    StateMachine state_machine_addition1 = getMinimalFullDeterminedAdditionStateMachine(state_machine1, print_log);
+    StateMachine state_machine_addition2 = getMinimalFullDeterminedAdditionStateMachine(state_machine2, print_log);
+
+    pair<bool, string> first_language_is_larger_than_second = getCommonString(state_machine1, state_machine_addition2);
+    pair<bool, string> second_language_is_larger_than_first = getCommonString(state_machine2, state_machine_addition1);
+
+    if (print_log) {
+        cout << "Results after searching for common string:" << endl;
+        if (first_language_is_larger_than_second.first) {
+            cout << "First language is larger than second, it contains string:" << endl;
+            cout << first_language_is_larger_than_second.second << endl;
+        } else if (second_language_is_larger_than_first.first) {
+            cout << "Second language is larger than first, it contains string:" << endl;
+            cout << second_language_is_larger_than_first.second << endl;
+        } else if (!first_language_is_larger_than_second.first && !second_language_is_larger_than_first.first) {
+            cout << "The languages are equal: a&(~b) == 0 && (~a)&b == 0" << endl;
+        } else {
+            throw runtime_error("impossible scenario happened");
+        }
+    }
+
+    return !first_language_is_larger_than_second.first && !second_language_is_larger_than_first.first;
+    // no terminal states should be reachable if state machines are equal
 }
