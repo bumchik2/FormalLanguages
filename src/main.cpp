@@ -7,31 +7,33 @@ using std::cout;
 using std::endl;
 
 int main () {
-    // checking if to state machines are equal
-    //StateMachine state_machine1;
-    // >> state_machine1;
-    //StateMachine state_machine2;
-    //cin >> state_machine2;
-    //cout << areEqual(state_machine1, state_machine2) << endl;
+    // Checking state machines equivalence
+    /*StateMachine state_machine1;
+    cin >> state_machine1;
+    StateMachine state_machine2;
+    cin >> state_machine2;
+    cout << areEqual(state_machine1, state_machine2) << endl;*/
 
-    StateMachine state_machine;
+    // Finding min full determined state machine
+    /*StateMachine state_machine;
     cin >> state_machine;
-
-    // Task1:
     StateMachine minimal_state_machine =
             getMinimalFullDeterminedStateMachine(state_machine, true);
-    cout << minimal_state_machine << endl;
+    cout << minimal_state_machine << endl;*/
 
-    // Task2:
-    //StateMachine minimal_addition_state_machine =
-    //        getMinimalFullDeterminedAdditionStateMachine(state_machine, true);
-    //cout << minimal_addition_state_machine << endl;
+    // Finding min full determined state machine for addition
+    StateMachine state_machine;
+    cin >> state_machine;
+    StateMachine minimal_addition_state_machine =
+            getMinimalFullDeterminedAdditionStateMachine(state_machine, true);
+    cout << minimal_addition_state_machine << endl;
     return 0;
 }
 
 /*
 
 Test (|w|a - |w|b % 3 == 0)
+
 9 18
 ab
 0 1 a
@@ -56,6 +58,7 @@ ab
 0 4 8
 
 Task 1
+
 7 13
 ab
 0 0 a
@@ -75,19 +78,25 @@ ab
 6
 
 Task 2
-6 10
+
+8 15
 ab
-0 1 a
+0 2 a
 1 2 a
+2 2 a
+2 4 a
+4 7 b
+7 4 a
+3 4 a
+7 3 a
+5 7 a
+7 5 b
+3 5 b
 2 5 b
-5 2 a
-5 1 a
-1 3 b
-3 5 a
-5 3 b
-3 4 b
-4 3 a
-2
-0 5
+5 6 b
+6 5 a
+7 2 a
+3
+0 2 7
 
 */
